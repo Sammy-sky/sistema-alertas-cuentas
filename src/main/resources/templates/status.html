@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Estado de Cuentas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body { background:#0f172a; color:#e2e8f0; font-family:'Segoe UI',sans-serif; padding:24px; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:12px; }
+    .table { color:#e2e8f0; }
+    .table thead th { color:#94a3b8; border-color:#334155; font-size:11px; text-transform:uppercase; }
+    .table td { border-color:#1e293b; vertical-align:middle; }
+    .badge-bloqueada { background:#450a0a; color:#fca5a5; }
+    .badge-notificada { background:#1e1b4b; color:#a5b4fc; }
+  </style>
+</head>
+<body>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0">📊 Estado Público de Cuentas</h5>
+    <a href="/" class="btn btn-sm btn-outline-secondary">🔒 Panel Admin</a>
+  </div>
+  <div class="card p-3">
+    <div class="table-responsive">
+      <table class="table table-borderless">
+        <thead>
+          <tr>
+            <th>Email</th><th>App</th><th>Proyecto</th><th>Reactivación</th><th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+<script>
+async function cargar() {
+  const res = await fetch('/api/cuentas');
+  const data = await res.json();
+  document.getElementById('tbody').innerHTML = data.map(c => `
+    <tr>
+      <td>${c.email}</td>
+      <td>${c.appPlataforma}</td>
+      <td>${c.proyecto}</td>
+      <td>${new Date(c.fechaReactivacion).toLocaleString('es-PE')}</td>
+      <td><span class="badge badge-${c.estado.toLowerCase()} px-2">${c.estado}</span></td>
+    </tr>
+  `).join('');
+}
+cargar();
+setInterval(cargar, 30000);
+</script>
+</body>
+</html>

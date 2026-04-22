@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Alertas de Cuentas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body { background:#0f172a; color:#e2e8f0; font-family:'Segoe UI',sans-serif; }
+    .navbar { background:#1e293b; border-bottom:1px solid #334155; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:12px; }
+    .table { color:#e2e8f0; }
+    .table thead th { color:#94a3b8; border-color:#334155; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+    .table td { border-color:#1e293b; vertical-align:middle; }
+    .table tbody tr:hover { background:#263548; }
+    .badge-bloqueada { background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; }
+    .badge-disponible { background:#052e16; color:#86efac; border:1px solid #14532d; }
+    .badge-notificada { background:#1e1b4b; color:#a5b4fc; border:1px solid #312e81; }
+    .btn-primary { background:#3b82f6; border:none; }
+    .btn-primary:hover { background:#2563eb; }
+    .modal-content { background:#1e293b; color:#e2e8f0; border:1px solid #334155; }
+    .modal-header { border-bottom:1px solid #334155; }
+    .modal-footer { border-top:1px solid #334155; }
+    .form-control, .form-select { background:#0f172a; color:#e2e8f0; border:1px solid #334155; }
+    .form-control:focus, .form-select:focus { background:#0f172a; color:#e2e8f0; border-color:#3b82f6; box-shadow:none; }
+    .countdown { font-family:monospace; font-size:12px; color:#94a3b8; }
+    .input-group-text { background:#1e293b; color:#94a3b8; border:1px solid #334155; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar px-4 py-3 mb-4">
+  <span class="navbar-brand text-white fw-bold">⚡ Sistema de Alertas de Cuentas</span>
+  <div class="d-flex gap-2">
+    <a href="/status" class="btn btn-sm btn-outline-secondary">📊 Vista Pública</a>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNueva">
+      + Nueva Cuenta
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid px-4">
+
+  <!-- Resumen -->
+  <div class="row g-3 mb-4" id="resumen">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="fs-2 fw-bold text-danger" id="cnt-bloqueada">0</div>
+        <div class="text-muted small">🔴 Bloqueadas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="fs-2 fw-bold text-success" id="cnt-notificada">0</div>
+        <div class="text-muted small">🟢 Notificadas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="fs-2 fw-bold text-info" id="cnt-total">0</div>
+        <div class="text-muted small">📋 Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center">
+        <div class="fs-2 fw-bold text-warning" id="cnt-proxima">—</div>
+        <div class="text-muted small">⏰ Próxima alerta</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0 text-muted">Cuentas registradas</h6>
+      <span class="text-muted small">🔄 Auto-refresh cada 30s</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-borderless">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>App</th>
+            <th>Proyecto</th>
+            <th>Perfil</th>
+            <th>Reactivación</th>
+            <th>Tiempo restante</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-cuentas">
+          <tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nueva/Editar Cuenta -->
+<div class="modal fade" id="modalNueva" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitulo">➕ Nueva Cuenta</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId"/>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small text-muted">📧 Email *</label>
+            <input type="email" class="form-control" id="f-email" placeholder="cuenta@zoho.com"/>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-muted">🚀 App / Plataforma *</label>
+            <input type="text" class="form-control" id="f-app" placeholder="Zoho Mail, Gmail..."/>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-muted">📁 Proyecto *</label>
+            <input type="text" class="form-control" id="f-proyecto" placeholder="Cliente Restaurante"/>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-muted">🌐 Perfil Navegador *</label>
+            <input type="text" class="form-control" id="f-perfil" placeholder="Chrome Perfil 2"/>
+          </div>
+          <div class="col-12">
+            <label class="form-label small text-muted">⏰ Fecha de Reactivación *</label>
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-sm btn-outline-primary active" id="btn-modo-fecha" onclick="setModo('fecha')">
+                📅 Fecha exacta
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" id="btn-modo-horas" onclick="setModo('horas')">
+                ⏱️ En X horas
+              </button>
+            </div>
+            <div id="modo-fecha">
+              <input type="datetime-local" class="form-control" id="f-fecha"/>
+            </div>
+            <div id="modo-horas" style="display:none">
+              <div class="input-group">
+                <input type="number" class="form-control" id="f-horas" placeholder="24" min="1"/>
+                <span class="input-group-text">horas desde ahora</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label small text-muted">📝 Notas</label>
+            <textarea class="form-control" id="f-notas" rows="2" placeholder="2FA, contraseñas, observaciones..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarCuenta()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let modoFecha = 'fecha';
+let intervalId = null;
+
+// ── Modo de ingreso de fecha ───────────────────────────────────
+function setModo(modo) {
+  modoFecha = modo;
+  document.getElementById('modo-fecha').style.display = modo === 'fecha' ? 'block' : 'none';
+  document.getElementById('modo-horas').style.display = modo === 'horas' ? 'block' : 'none';
+  document.getElementById('btn-modo-fecha').classList.toggle('active', modo === 'fecha');
+  document.getElementById('btn-modo-fecha').classList.toggle('btn-outline-primary', modo === 'fecha');
+  document.getElementById('btn-modo-fecha').classList.toggle('btn-outline-secondary', modo !== 'fecha');
+  document.getElementById('btn-modo-horas').classList.toggle('active', modo === 'horas');
+  document.getElementById('btn-modo-horas').classList.toggle('btn-outline-primary', modo === 'horas');
+  document.getElementById('btn-modo-horas').classList.toggle('btn-outline-secondary', modo !== 'horas');
+}
+
+// ── Cargar y renderizar tabla ──────────────────────────────────
+async function cargarCuentas() {
+  const res = await fetch('/api/cuentas');
+  const cuentas = await res.json();
+  renderTabla(cuentas);
+  renderResumen(cuentas);
+}
+
+function renderTabla(cuentas) {
+  const tbody = document.getElementById('tabla-cuentas');
+  if (cuentas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay cuentas registradas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = cuentas.map(c => `
+    <tr>
+      <td><strong>${c.email}</strong></td>
+      <td>${c.appPlataforma}</td>
+      <td>${c.proyecto}</td>
+      <td><span class="text-muted small">${c.perfilNavegador}</span></td>
+      <td><span class="small">${formatFecha(c.fechaReactivacion)}</span></td>
+      <td><span class="countdown" id="cd-${c.id}" data-fecha="${c.fechaReactivacion}">...</span></td>
+      <td>${badgeEstado(c.estado)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="editarCuenta(${c.id})">✏️</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="eliminarCuenta(${c.id}, '${c.email}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderResumen(cuentas) {
+  const bloqueadas = cuentas.filter(c => c.estado === 'BLOQUEADA').length;
+  const notificadas = cuentas.filter(c => c.estado === 'NOTIFICADA').length;
+  document.getElementById('cnt-bloqueada').textContent = bloqueadas;
+  document.getElementById('cnt-notificada').textContent = notificadas;
+  document.getElementById('cnt-total').textContent = cuentas.length;
+
+  const proxima = cuentas
+    .filter(c => c.estado === 'BLOQUEADA')
+    .map(c => new Date(c.fechaReactivacion))
+    .sort((a, b) => a - b)[0];
+  document.getElementById('cnt-proxima').textContent = proxima ? formatCountdown(proxima) : '—';
+}
+
+function badgeEstado(estado) {
+  const map = {
+    'BLOQUEADA':  '<span class="badge badge-bloqueada px-2 py-1">🔴 BLOQUEADA</span>',
+    'DISPONIBLE': '<span class="badge badge-disponible px-2 py-1">🟢 DISPONIBLE</span>',
+    'NOTIFICADA': '<span class="badge badge-notificada px-2 py-1">🔔 NOTIFICADA</span>'
+  };
+  return map[estado] || estado;
+}
+
+function formatFecha(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-PE', { dateStyle:'short', timeStyle:'short' });
+}
+
+function formatCountdown(fecha) {
+  const diff = fecha - new Date();
+  if (diff <= 0) return '⏰ Ya disponible';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  return `${h}h ${m}m ${s}s`;
+}
+
+// ── Countdown en tiempo real ───────────────────────────────────
+function actualizarCountdowns() {
+  document.querySelectorAll('.countdown[data-fecha]').forEach(el => {
+    el.textContent = formatCountdown(new Date(el.dataset.fecha));
+  });
+}
+
+// ── Guardar cuenta (crear o editar) ───────────────────────────
+async function guardarCuenta() {
+  const id = document.getElementById('editId').value;
+  const body = {
+    email:           document.getElementById('f-email').value,
+    appPlataforma:   document.getElementById('f-app').value,
+    proyecto:        document.getElementById('f-proyecto').value,
+    perfilNavegador: document.getElementById('f-perfil').value,
+    notas:           document.getElementById('f-notas').value
+  };
+
+  if (modoFecha === 'horas') {
+    body.horasBloqueada = parseInt(document.getElementById('f-horas').value);
+  } else {
+    body.fechaReactivacion = document.getElementById('f-fecha').value;
+  }
+
+  const url    = id ? `/api/cuentas/${id}` : '/api/cuentas';
+  const method = id ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (res.ok) {
+    bootstrap.Modal.getInstance(document.getElementById('modalNueva')).hide();
+    limpiarModal();
+    cargarCuentas();
+  } else {
+    const err = await res.json();
+    alert('Error: ' + err.error);
+  }
+}
+
+// ── Editar cuenta ──────────────────────────────────────────────
+async function editarCuenta(id) {
+  const res = await fetch(`/api/cuentas/${id}`);
+  const c = await res.json();
+
+  document.getElementById('editId').value        = c.id;
+  document.getElementById('f-email').value       = c.email;
+  document.getElementById('f-app').value         = c.appPlataforma;
+  document.getElementById('f-proyecto').value    = c.proyecto;
+  document.getElementById('f-perfil').value      = c.perfilNavegador;
+  document.getElementById('f-notas').value       = c.notas || '';
+  document.getElementById('f-fecha').value       = c.fechaReactivacion?.substring(0, 16);
+  document.getElementById('modalTitulo').textContent = '✏️ Editar Cuenta';
+  setModo('fecha');
+
+  new bootstrap.Modal(document.getElementById('modalNueva')).show();
+}
+
+// ── Eliminar cuenta ────────────────────────────────────────────
+async function eliminarCuenta(id, email) {
+  if (!confirm(`¿Eliminar la cuenta ${email}?`)) return;
+  await fetch(`/api/cuentas/${id}`, { method: 'DELETE' });
+  cargarCuentas();
+}
+
+// ── Limpiar modal ──────────────────────────────────────────────
+function limpiarModal() {
+  ['editId','f-email','f-app','f-proyecto','f-perfil','f-notas','f-fecha','f-horas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('modalTitulo').textContent = '➕ Nueva Cuenta';
+  setModo('fecha');
+}
+
+document.getElementById('modalNueva').addEventListener('hidden.bs.modal', limpiarModal);
+
+// ── Inicio ─────────────────────────────────────────────────────
+cargarCuentas();
+setInterval(cargarCuentas, 30000);       // refresca tabla cada 30s
+setInterval(actualizarCountdowns, 1000); // countdown cada 1s
+</script>
+</body>
+</html>
