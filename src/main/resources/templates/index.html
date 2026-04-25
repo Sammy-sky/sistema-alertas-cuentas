@@ -5,79 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sistema de Alertas de Cuentas</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <style>
-    body { background:#0f172a; color:#e2e8f0; font-family:'Segoe UI',sans-serif; }
-    .navbar { background:#1e293b; border-bottom:1px solid #334155; }
-    .card { background:#1e293b; border:1px solid #334155; border-radius:12px; }
-    .table { color:#e2e8f0; }
-    .table thead th { color:#94a3b8; border-color:#334155; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
-    .table td { border-color:#1e293b; vertical-align:middle; }
-    .table tbody tr:hover { background:#263548; }
-    .badge-bloqueada { background:#450a0a; color:#fca5a5; border:1px solid #7f1d1d; }
-    .badge-disponible { background:#052e16; color:#86efac; border:1px solid #14532d; }
-    .badge-notificada { background:#1e1b4b; color:#a5b4fc; border:1px solid #312e81; }
-    .btn-primary { background:#3b82f6; border:none; }
-    .btn-primary:hover { background:#2563eb; }
-    .modal-content { background:#1e293b; color:#e2e8f0; border:1px solid #334155; }
-    .modal-header { border-bottom:1px solid #334155; }
-    .modal-footer { border-top:1px solid #334155; }
-    .form-control, .form-select { background:#0f172a; color:#e2e8f0; border:1px solid #334155; }
-    .form-control:focus, .form-select:focus { background:#0f172a; color:#e2e8f0; border-color:#3b82f6; box-shadow:none; }
-    .countdown { font-family:monospace; font-size:12px; color:#94a3b8; }
-    .input-group-text { background:#1e293b; color:#94a3b8; border:1px solid #334155; }
-  </style>
+  <link th:href="@{/css/dashboard.css}" rel="stylesheet"/>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar px-4 py-3 mb-4">
-  <span class="navbar-brand text-white fw-bold">⚡ Sistema de Alertas de Cuentas</span>
+<nav class="navbar-custom d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <span class="brand-icon">⚡</span>
+    <div>
+      <div class="fw-bold fs-5 text-primary" style="letter-spacing: -0.3px;">AlertaCuentas</div>
+      <div class="font-mono text-muted-custom" style="font-size: 10px;">Sistema de Monitoreo 24/7</div>
+    </div>
+  </div>
   <div class="d-flex gap-2">
-    <a href="/status" class="btn btn-sm btn-outline-secondary">📊 Vista Pública</a>
-    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNueva">
-      + Nueva Cuenta
+    <a href="/status" class="btn btn-ghost btn-sm d-flex align-items-center gap-2 px-3">
+      🌐 <span class="d-none d-md-inline">Vista Pública</span>
+    </a>
+    <button class="btn btn-gradient btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalNueva">
+      + <span class="d-none d-md-inline">Nueva Cuenta</span>
     </button>
   </div>
 </nav>
 
-<div class="container-fluid px-4">
-
-  <!-- Resumen -->
+<div class="container-fluid px-4 pb-5">
   <div class="row g-3 mb-4" id="resumen">
-    <div class="col-6 col-md-3">
-      <div class="card p-3 text-center">
-        <div class="fs-2 fw-bold text-danger" id="cnt-bloqueada">0</div>
-        <div class="text-muted small">🔴 Bloqueadas</div>
+    <div class="col-6 col-md-3" style="animation-delay: 0ms;">
+      <div class="metric-card card-red">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-mono fw-bold text-secondary" style="font-size:10px; letter-spacing: 1px;">BLOQUEADAS</span>
+          <span>🔴</span>
+        </div>
+        <div class="metric-number" style="color: var(--color-red);" id="cnt-bloqueada">0</div>
+        <div class="text-secondary mt-1" style="font-size: 12px;">Cuentas en espera</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card p-3 text-center">
-        <div class="fs-2 fw-bold text-success" id="cnt-notificada">0</div>
-        <div class="text-muted small">🟢 Notificadas</div>
+    <div class="col-6 col-md-3" style="animation-delay: 100ms;">
+      <div class="metric-card card-green">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-mono fw-bold text-secondary" style="font-size:10px; letter-spacing: 1px;">DISPONIBLES</span>
+          <span>🟢</span>
+        </div>
+        <div class="metric-number" style="color: var(--color-green);" id="cnt-notificada">0</div>
+        <div class="text-secondary mt-1" style="font-size: 12px;">Listas para usar</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card p-3 text-center">
-        <div class="fs-2 fw-bold text-info" id="cnt-total">0</div>
-        <div class="text-muted small">📋 Total</div>
+    <div class="col-6 col-md-3" style="animation-delay: 200ms;">
+      <div class="metric-card card-cyan">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-mono fw-bold text-secondary" style="font-size:10px; letter-spacing: 1px;">TOTAL</span>
+          <span>📋</span>
+        </div>
+        <div class="metric-number" style="color: var(--color-cyan);" id="cnt-total">0</div>
+        <div class="text-secondary mt-1" style="font-size: 12px;">Cuentas registradas</div>
       </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card p-3 text-center">
-        <div class="fs-2 fw-bold text-warning" id="cnt-proxima">—</div>
-        <div class="text-muted small">⏰ Próxima alerta</div>
+    <div class="col-6 col-md-3" style="animation-delay: 300ms;">
+      <div class="metric-card card-amber">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="font-mono fw-bold text-secondary" style="font-size:10px; letter-spacing: 1px;">PRÓXIMA ALERTA</span>
+          <span>⏰</span>
+        </div>
+        <div class="metric-number fs-4" style="color: var(--color-amber);" id="cnt-proxima">—</div>
+        <div class="text-secondary mt-1" style="font-size: 12px;">Tiempo hasta la siguiente</div>
       </div>
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="card p-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="mb-0 text-muted">Cuentas registradas</h6>
-      <span class="text-muted small">🔄 Auto-refresh cada 30s</span>
+  <div class="table-container">
+    <div class="table-toolbar d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <h6 class="mb-0 fw-bold" style="font-size: 15px;">Cuentas Registradas</h6>
+        <div class="d-flex align-items-center gap-2">
+          <div class="sync-loader"></div>
+          <span class="font-mono text-muted-custom" style="font-size: 10px;">Actualizando...</span>
+        </div>
+      </div>
+      <div>
+        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 Buscar email, app, proyecto..." style="max-width: 250px;" onkeyup="filtrarTabla()">
+      </div>
     </div>
     <div class="table-responsive">
-      <table class="table table-borderless">
+      <table class="custom-table">
         <thead>
           <tr>
             <th>Email</th>
@@ -87,53 +95,57 @@
             <th>Reactivación</th>
             <th>Tiempo restante</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th class="text-end">Acciones</th>
           </tr>
         </thead>
         <tbody id="tabla-cuentas">
-          <tr><td colspan="8" class="text-center text-muted py-4">Cargando...</td></tr>
+          <tr><td colspan="8" class="text-center text-muted-custom py-5">
+            <div class="fs-1 mb-2">📭</div>
+            <div class="fw-bold text-primary">Cargando datos...</div>
+          </td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- Modal Nueva/Editar Cuenta -->
 <div class="modal fade" id="modalNueva" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalTitulo">➕ Nueva Cuenta</h5>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modal-content-custom">
+      <div class="modal-header modal-header-custom px-4 py-3 border-0">
+        <div class="d-flex align-items-center gap-3">
+          <div style="background: linear-gradient(135deg, var(--color-blue), var(--color-violet)); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;">➕</div>
+          <div>
+            <h5 class="modal-title fw-bold text-primary mb-0" id="modalTitulo" style="font-size: 18px;">Nueva Cuenta</h5>
+            <div class="text-secondary" style="font-size: 12px;">Registrar cuenta bloqueada</div>
+          </div>
+        </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body px-4 py-3">
         <input type="hidden" id="editId"/>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label small text-muted">📧 Email *</label>
+            <label class="form-label-custom">📧 Correo electrónico</label>
             <input type="email" class="form-control" id="f-email" placeholder="cuenta@zoho.com"/>
           </div>
           <div class="col-md-6">
-            <label class="form-label small text-muted">🚀 App / Plataforma *</label>
-            <input type="text" class="form-control" id="f-app" placeholder="Zoho Mail, Gmail..."/>
+            <label class="form-label-custom">🚀 App o Plataforma</label>
+            <input type="text" class="form-control" id="f-app" placeholder="Zoho Mail, Gmail, Outlook..."/>
           </div>
           <div class="col-md-6">
-            <label class="form-label small text-muted">📁 Proyecto *</label>
+            <label class="form-label-custom">📁 Proyecto</label>
             <input type="text" class="form-control" id="f-proyecto" placeholder="Cliente Restaurante"/>
           </div>
           <div class="col-md-6">
-            <label class="form-label small text-muted">🌐 Perfil Navegador *</label>
-            <input type="text" class="form-control" id="f-perfil" placeholder="Chrome Perfil 2"/>
+            <label class="form-label-custom">🌐 Perfil del navegador</label>
+            <input type="text" class="form-control" id="f-perfil" placeholder="Chrome Perfil 2, Edge Trabajo..."/>
           </div>
           <div class="col-12">
-            <label class="form-label small text-muted">⏰ Fecha de Reactivación *</label>
+            <label class="form-label-custom">⏰ Reactivación</label>
             <div class="d-flex gap-2 mb-2">
-              <button class="btn btn-sm btn-outline-primary active" id="btn-modo-fecha" onclick="setModo('fecha')">
-                📅 Fecha exacta
-              </button>
-              <button class="btn btn-sm btn-outline-secondary" id="btn-modo-horas" onclick="setModo('horas')">
-                ⏱️ En X horas
-              </button>
+              <button class="btn btn-sm btn-ghost active rounded-pill px-3" id="btn-modo-fecha" onclick="setModo('fecha')" style="font-size: 12px;">📅 Fecha exacta</button>
+              <button class="btn btn-sm btn-ghost rounded-pill px-3" id="btn-modo-horas" onclick="setModo('horas')" style="font-size: 12px;">⏱️ En X horas</button>
             </div>
             <div id="modo-fecha">
               <input type="datetime-local" class="form-control" id="f-fecha"/>
@@ -141,71 +153,124 @@
             <div id="modo-horas" style="display:none">
               <div class="input-group">
                 <input type="number" class="form-control" id="f-horas" placeholder="24" min="1"/>
-                <span class="input-group-text">horas desde ahora</span>
+                <span class="input-group-text border-start-0" style="background: var(--color-surface-2); color: var(--text-secondary); border-color: var(--color-border);">horas desde ahora</span>
               </div>
             </div>
           </div>
           <div class="col-12">
-            <label class="form-label small text-muted">📝 Notas</label>
-            <textarea class="form-control" id="f-notas" rows="2" placeholder="2FA, contraseñas, observaciones..."></textarea>
+            <label class="form-label-custom">📝 Notas (opcional)</label>
+            <textarea class="form-control" id="f-notas" rows="3" placeholder="2FA activado, contraseña del cliente, observaciones..."></textarea>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="guardarCuenta()">💾 Guardar</button>
+      <div class="modal-footer modal-footer-custom px-4 py-3 border-0">
+        <button class="btn btn-ghost px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-gradient px-4 d-flex align-items-center gap-2" onclick="guardarCuenta()" id="btnGuardar">
+          <span>💾 Guardar</span>
+        </button>
       </div>
     </div>
   </div>
 </div>
 
+<div class="modal fade" id="modalConfirmar" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content modal-content-custom">
+      <div class="modal-body text-center p-4">
+        <div class="fs-1 mb-3">⚠️</div>
+        <h6 class="fw-bold mb-2">¿Eliminar esta cuenta?</h6>
+        <p class="text-secondary small mb-4" id="confirmEmail"></p>
+        <div class="d-flex justify-content-center gap-2">
+          <button class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-danger btn-sm px-3" id="btnConfirmDelete">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-custom">
+  ✅ <span id="toast-msg">Cuenta registrada correctamente</span>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 let modoFecha = 'fecha';
-let intervalId = null;
+let deleteIdTarget = null;
+let todasLasCuentas = [];
 
-// ── Modo de ingreso de fecha ───────────────────────────────────
+// ── UI Utils ───────────────────────────────────────────────────
+function showToast(msg) {
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
 function setModo(modo) {
   modoFecha = modo;
   document.getElementById('modo-fecha').style.display = modo === 'fecha' ? 'block' : 'none';
   document.getElementById('modo-horas').style.display = modo === 'horas' ? 'block' : 'none';
-  document.getElementById('btn-modo-fecha').classList.toggle('active', modo === 'fecha');
-  document.getElementById('btn-modo-fecha').classList.toggle('btn-outline-primary', modo === 'fecha');
-  document.getElementById('btn-modo-fecha').classList.toggle('btn-outline-secondary', modo !== 'fecha');
-  document.getElementById('btn-modo-horas').classList.toggle('active', modo === 'horas');
-  document.getElementById('btn-modo-horas').classList.toggle('btn-outline-primary', modo === 'horas');
-  document.getElementById('btn-modo-horas').classList.toggle('btn-outline-secondary', modo !== 'horas');
+  
+  const btnF = document.getElementById('btn-modo-fecha');
+  const btnH = document.getElementById('btn-modo-horas');
+  
+  if(modo === 'fecha') {
+    btnF.style.background = 'linear-gradient(135deg, var(--color-blue), var(--color-violet))';
+    btnF.style.color = 'white'; btnF.style.border = 'none';
+    btnH.style.background = 'transparent'; btnH.style.color = 'var(--text-secondary)'; btnH.style.border = '1px solid var(--color-border)';
+  } else {
+    btnH.style.background = 'linear-gradient(135deg, var(--color-blue), var(--color-violet))';
+    btnH.style.color = 'white'; btnH.style.border = 'none';
+    btnF.style.background = 'transparent'; btnF.style.color = 'var(--text-secondary)'; btnF.style.border = '1px solid var(--color-border)';
+  }
 }
 
 // ── Cargar y renderizar tabla ──────────────────────────────────
 async function cargarCuentas() {
   const res = await fetch('/api/cuentas');
-  const cuentas = await res.json();
-  renderTabla(cuentas);
-  renderResumen(cuentas);
+  todasLasCuentas = await res.json();
+  filtrarTabla(); // Renderiza respetando el filtro de búsqueda actual
+  renderResumen(todasLasCuentas);
+}
+
+function filtrarTabla() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtradas = todasLasCuentas.filter(c => 
+    c.email.toLowerCase().includes(q) || 
+    c.appPlataforma.toLowerCase().includes(q) || 
+    c.proyecto.toLowerCase().includes(q)
+  );
+  renderTabla(filtradas);
 }
 
 function renderTabla(cuentas) {
   const tbody = document.getElementById('tabla-cuentas');
   if (cuentas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay cuentas registradas</td></tr>';
+    tbody.innerHTML = `
+      <tr><td colspan="8" class="text-center py-5">
+        <div class="fs-1 mb-2">📭</div>
+        <div class="fw-bold" style="color: var(--text-secondary);">Sin cuentas registradas</div>
+        <div class="small text-muted-custom mt-1">Agrega tu primera cuenta o ajusta la búsqueda</div>
+      </td></tr>`;
     return;
   }
   tbody.innerHTML = cuentas.map(c => `
     <tr>
-      <td><strong>${c.email}</strong></td>
-      <td>${c.appPlataforma}</td>
-      <td>${c.proyecto}</td>
-      <td><span class="text-muted small">${c.perfilNavegador}</span></td>
-      <td><span class="small">${formatFecha(c.fechaReactivacion)}</span></td>
-      <td><span class="countdown" id="cd-${c.id}" data-fecha="${c.fechaReactivacion}">...</span></td>
+      <td class="font-mono text-primary" style="font-size: 13px;">📧 ${c.email}</td>
+      <td class="text-secondary" style="font-size: 13px;">${c.appPlataforma}</td>
+      <td class="text-secondary" style="font-size: 13px;">${c.proyecto}</td>
+      <td class="text-secondary" style="font-size: 13px;">${c.perfilNavegador}</td>
+      <td class="font-mono text-secondary" style="font-size: 12px;">${formatFecha(c.fechaReactivacion)}</td>
+      <td><span class="countdown font-mono" id="cd-${c.id}" data-fecha="${c.fechaReactivacion}">...</span></td>
       <td>${badgeEstado(c.estado)}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary me-1" onclick="editarCuenta(${c.id})">✏️</button>
-        <button class="btn btn-sm btn-outline-danger" onclick="eliminarCuenta(${c.id}, '${c.email}')">🗑️</button>
+      <td class="text-end">
+        <button class="btn-action edit me-1" onclick="editarCuenta(${c.id})" title="Editar">✏️</button>
+        <button class="btn-action delete" onclick="confirmarEliminar(${c.id}, '${c.email}')" title="Eliminar">🗑️</button>
       </td>
     </tr>
   `).join('');
+  actualizarCountdowns();
 }
 
 function renderResumen(cuentas) {
@@ -219,14 +284,14 @@ function renderResumen(cuentas) {
     .filter(c => c.estado === 'BLOQUEADA')
     .map(c => new Date(c.fechaReactivacion))
     .sort((a, b) => a - b)[0];
-  document.getElementById('cnt-proxima').textContent = proxima ? formatCountdown(proxima) : '—';
+  document.getElementById('cnt-proxima').textContent = proxima ? formatCountdownStr(proxima) : '—';
 }
 
 function badgeEstado(estado) {
   const map = {
-    'BLOQUEADA':  '<span class="badge badge-bloqueada px-2 py-1">🔴 BLOQUEADA</span>',
-    'DISPONIBLE': '<span class="badge badge-disponible px-2 py-1">🟢 DISPONIBLE</span>',
-    'NOTIFICADA': '<span class="badge badge-notificada px-2 py-1">🔔 NOTIFICADA</span>'
+    'BLOQUEADA':  `<span class="status-badge badge-bloqueada"><span class="pulse-dot"></span>BLOQUEADA</span>`,
+    'DISPONIBLE': `<span class="status-badge badge-disponible">DISPONIBLE</span>`,
+    'NOTIFICADA': `<span class="status-badge badge-notificada">✓ NOTIFICADA</span>`
   };
   return map[estado] || estado;
 }
@@ -236,24 +301,44 @@ function formatFecha(iso) {
   return new Date(iso).toLocaleString('es-PE', { dateStyle:'short', timeStyle:'short' });
 }
 
-function formatCountdown(fecha) {
+// ── Countdowns ─────────────────────────────────────────────────
+function formatCountdownStr(fecha) {
   const diff = fecha - new Date();
-  if (diff <= 0) return '⏰ Ya disponible';
+  if (diff <= 0) return '✓ Ya disponible';
   const h = Math.floor(diff / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
   return `${h}h ${m}m ${s}s`;
 }
 
-// ── Countdown en tiempo real ───────────────────────────────────
 function actualizarCountdowns() {
   document.querySelectorAll('.countdown[data-fecha]').forEach(el => {
-    el.textContent = formatCountdown(new Date(el.dataset.fecha));
+    const d = new Date(el.dataset.fecha);
+    const text = formatCountdownStr(d);
+    el.textContent = text;
+    
+    // Estilos dinámicos
+    if(text.includes('Ya disponible')) {
+      el.style.color = 'var(--color-green)';
+    } else {
+      const diff = d - new Date();
+      if(diff < 3600000 && diff > 0) { // Menos de 1 hora
+        el.style.color = 'var(--color-amber)';
+        el.style.animation = 'pulse-glow 2s infinite';
+      } else {
+        el.style.color = 'var(--text-primary)';
+        el.style.animation = 'none';
+      }
+    }
   });
 }
 
 // ── Guardar cuenta (crear o editar) ───────────────────────────
 async function guardarCuenta() {
+  const btn = document.getElementById('btnGuardar');
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...`;
+  btn.disabled = true;
+
   const id = document.getElementById('editId').value;
   const body = {
     email:           document.getElementById('f-email').value,
@@ -272,19 +357,25 @@ async function guardarCuenta() {
   const url    = id ? `/api/cuentas/${id}` : '/api/cuentas';
   const method = id ? 'PUT' : 'POST';
 
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
 
-  if (res.ok) {
-    bootstrap.Modal.getInstance(document.getElementById('modalNueva')).hide();
-    limpiarModal();
-    cargarCuentas();
-  } else {
-    const err = await res.json();
-    alert('Error: ' + err.error);
+    if (res.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('modalNueva')).hide();
+      limpiarModal();
+      await cargarCuentas();
+      showToast(id ? 'Cuenta actualizada correctamente' : 'Cuenta registrada correctamente');
+    } else {
+      const err = await res.json();
+      alert('Error: ' + err.error);
+    }
+  } finally {
+    btn.innerHTML = `<span>💾 Guardar</span>`;
+    btn.disabled = false;
   }
 }
 
@@ -300,31 +391,41 @@ async function editarCuenta(id) {
   document.getElementById('f-perfil').value      = c.perfilNavegador;
   document.getElementById('f-notas').value       = c.notas || '';
   document.getElementById('f-fecha').value       = c.fechaReactivacion?.substring(0, 16);
-  document.getElementById('modalTitulo').textContent = '✏️ Editar Cuenta';
+  document.getElementById('modalTitulo').textContent = 'Editar Cuenta';
   setModo('fecha');
 
   new bootstrap.Modal(document.getElementById('modalNueva')).show();
 }
 
-// ── Eliminar cuenta ────────────────────────────────────────────
-async function eliminarCuenta(id, email) {
-  if (!confirm(`¿Eliminar la cuenta ${email}?`)) return;
-  await fetch(`/api/cuentas/${id}`, { method: 'DELETE' });
-  cargarCuentas();
+// ── Eliminar cuenta (Custom Confirm) ───────────────────────────
+function confirmarEliminar(id, email) {
+  deleteIdTarget = id;
+  document.getElementById('confirmEmail').textContent = email;
+  new bootstrap.Modal(document.getElementById('modalConfirmar')).show();
 }
+
+document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+  if(!deleteIdTarget) return;
+  await fetch(`/api/cuentas/${deleteIdTarget}`, { method: 'DELETE' });
+  bootstrap.Modal.getInstance(document.getElementById('modalConfirmar')).hide();
+  deleteIdTarget = null;
+  cargarCuentas();
+  showToast('Cuenta eliminada');
+});
 
 // ── Limpiar modal ──────────────────────────────────────────────
 function limpiarModal() {
   ['editId','f-email','f-app','f-proyecto','f-perfil','f-notas','f-fecha','f-horas'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  document.getElementById('modalTitulo').textContent = '➕ Nueva Cuenta';
+  document.getElementById('modalTitulo').textContent = 'Nueva Cuenta';
   setModo('fecha');
 }
 
 document.getElementById('modalNueva').addEventListener('hidden.bs.modal', limpiarModal);
 
 // ── Inicio ─────────────────────────────────────────────────────
+setModo('fecha'); // Inicializar estilos de botones
 cargarCuentas();
 setInterval(cargarCuentas, 30000);       // refresca tabla cada 30s
 setInterval(actualizarCountdowns, 1000); // countdown cada 1s
