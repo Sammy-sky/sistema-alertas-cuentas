@@ -20,6 +20,10 @@ public class AlertaScheduler {
 
     @Scheduled(fixedDelay = 60000) // cada 60 segundos
     public void verificarCuentas() {
+        procesarAlertas();
+    }
+
+    public int procesarAlertas() {
         log.info("🔍 Verificando cuentas bloqueadas...");
 
         try {
@@ -27,15 +31,17 @@ public class AlertaScheduler {
 
             if (cuentas.isEmpty()) {
                 log.info("😴 Sin cuentas para notificar.");
-                return;
+                return 0;
             }
 
             log.info("🚨 {} cuenta(s) listas para notificar.", cuentas.size());
+            int procesadas = 0;
 
             for (CuentaCorreo cuenta : cuentas) {
                 try {
                     telegramService.enviarAlerta(cuenta);
                     cuentaService.marcarNotificada(cuenta);
+                    procesadas++;
                     log.info("✅ Notificada y marcada: {}", cuenta.getEmail());
                 } catch (Exception e) {
                     // Un error en una cuenta no detiene las demás
@@ -43,8 +49,10 @@ public class AlertaScheduler {
                 }
             }
 
+            return procesadas;
         } catch (Exception e) {
             log.error("❌ Error general en scheduler: {}", e.getMessage());
+            return 0;
         }
     }
 }

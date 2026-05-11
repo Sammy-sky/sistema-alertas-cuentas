@@ -1,0 +1,17 @@
+name: Check alerts
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call alert checker
+        run: |
+          curl --fail --show-error --silent \
+            --request POST \
+            --header "X-Alert-Token: ${{ secrets.ALERT_CHECK_TOKEN }}" \
+            "${{ secrets.APP_URL }}/api/jobs/check-alerts"
